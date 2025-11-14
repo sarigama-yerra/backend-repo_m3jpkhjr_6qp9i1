@@ -1,48 +1,28 @@
 """
-Database Schemas
+Database Schemas for CTF Application
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model corresponds to a MongoDB collection (collection name = lowercase class name).
 """
-
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
-# Example schemas (replace with your own):
+class Ctfuser(BaseModel):
+    username: str = Field(..., description="Display name of the user")
+    email: str = Field(..., description="Login email")
+    password: str = Field(..., description="Plain password for demo only (do not use in production)")
+    score: int = Field(0, description="Accumulated score from solved challenges")
+    solved: List[str] = Field(default_factory=list, description="List of solved challenge IDs as strings")
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+class Challenge(BaseModel):
+    title: str = Field(..., description="Challenge title")
+    category: str = Field(..., description="Category like Web, Forensics, Crypto, Pwn")
+    difficulty: str = Field(..., description="Easy | Medium | Hard")
+    points: int = Field(..., ge=0, description="Score for solving")
+    description: str = Field(..., description="Challenge description/statement")
+    flag: str = Field(..., description="Correct flag format: CTF{...}")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
-
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Submission(BaseModel):
+    user_id: str = Field(..., description="User ObjectId as string")
+    challenge_id: str = Field(..., description="Challenge ObjectId as string")
+    flag: str = Field(..., description="Submitted flag")
+    correct: bool = Field(False, description="Whether the submission is correct")
